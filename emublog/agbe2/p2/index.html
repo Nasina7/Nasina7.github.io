@@ -1,0 +1,75 @@
+<html>
+<head>
+  <link rel="stylesheet" href="../../../index.css">
+  <script src="../../../index.js"></script>
+</head>
+<body>
+    <div id="titleBar">
+      <button id="menuButton" onclick="openMenu()">Menu</button>
+      <button id="menuButton" onclick="goWebLocation()">Old Website</button>
+    </div>
+
+    <div id="tOverlay"></div>
+    <div id="menuBar">
+    </div>
+
+
+    <h1 id="welcomeText">Part 2: Implementing ROM Loading and Registers</h1>
+    <p id="blogText">
+      So, before we are able to even think about implementing opcodes, there are two things that we need to do first.<br /><br />
+
+          Create a Memory Array to load the ROM in and store data that the ROM will write to RAM.<br /><br />
+
+          Implement the CPU Registers (At least the essential ones anyway)<br /><br />
+
+      So, we look at our Gameboy Documentation and find that the address space (places that the Gameboy can access), spans from 0x0000 to 0xFFFF.  This space in total is 64 Kilobytes, so we make a 64 Kilobyte array to store it in.<br /><br />
+
+      uint8_t memory[0x10000];<br /><br />
+
+      However, the way that I implemented it is this:<br /><br />
+
+      char memory[0x10000];<br /><br />
+
+      This is VERY WRONG.  In fact, this simple issue is one of the main reasons that I writhe in disgust when trying to "fix" AGBE.  Because memory was declared as char, that meant that sign operation apply to it.  This means that the 8th byte is treated as a sign, positive or negative.  Normally this is fine, but when that sign bit is active (say, a memory address contains the value 0xA0), instead of being 0xA0, it becomes 0xFFFFFFA0.  In the future to work around this, I made all memory addresses be subtracted by 0xFFFFFF00 before being used.  Obviously this works, but it still looks ugly.  The way that I described higher up is the much better way to declare it.  <br /><br />
+
+      Next, we need to load the ROM.  Space for the ROM in RAM on the Gameboy is from 0x0000 to 0x7FFF.  This means that we can load 32 Kilobyte ROMs.  But some games are larger than 32 Kilobytes.  This involves something called Mappers or Memory Bank Controllers.  We will get to those later.  For now, we will just limit ourselves to games that are 32KB in size.<br /><br />
+
+      Next, we need to implement CPU Registers.  The main ones we need to worry about as of now are, A, F, B, C, D, E, H, L, PC, and SP.<br /><br />
+
+      PC and SP are 16-bit registers.  That means that they are able to hold up to 16-bits of data.  These registers are not accessed through the normal means of running an opcode though.  These two registers hold important data called the "Program Counter" and the "Stack Pointer".  The program counter keeps track of where execution of the rom is currently happening.  For instance, PC could be set to 0x2000, and that would mean that we would need to execute the opcode at memory address 0x2000.  The stack pointer is a bit more complicated.  It stores the current location of the Stack in RAM.  Think of the stack like a stack of papers.  You are only able to take out one paper at a time, and the paper that you take out is always the topmost one.  Likewise, you also only put one thing into the stack at a time and it is always put on the top.  Though it is useless for normal data management, it is VERY  important because it keeps track of PC values when a new function is called or returned from.<br /><br />
+
+      Next is A,F,B,C,D,E,H, and L.  All of these are 8-bit registers (kind of).  Standalone, each of these registers can hold 8-bits of data.  A,B,C,D,E,H, and L all contain regular data, but F contains something different.  F contains CPU Flags (which we will get to later).  The reason I said that these registers are kind of 8-bit is because they also have another ability.  Each of these registers can be put together with another one.  These are called AF, BC, DE, and HL.  BC and DE are used for general 16-bit data operations.  HL is generally used for storing locations to write memory to, and AF can't actually be used outside of pushing and popping from and onto the stack.  This is because, as I said before, F is a special register that contains CPU Flags.<br /><br />
+
+      So, implementation.  For each of these, I just created an 8-bit variable.  For instance:<br /><br />
+
+      uint8_t a;<br /><br />
+
+      uint8_t b;<br /><br />
+
+      etc...<br /><br />
+
+      That however is not how I actually implemented them in AGBE.  The way that I did it was:<br /><br />
+
+      unsigned char af[2];<br /><br />
+
+      unsigned char bc[2];<br /><br />
+
+      unsigned char de[2];<br /><br />
+
+      unsigned char hl[2];<br /><br />
+
+      int16_t pc;<br /><br />
+
+      unsigned char sp[2];<br /><br />
+
+      Do note that there are multiple issues with this.  Using unsigned char to implement 8-bit variables is fine, but I generally don't like the look of it.  Using an array to implement these variables is also fine, but still looks weird.  Using int16_t for PC is just plain wrong.  Due to it being int16_t instead of uint16_t, sign rules apply to it meaning that the 8th bit will act as a sign (either positive or negative).  Because of this, this would cause many bugs related to memory management in the future (although I think that I solved this issue before it got out of hand.)  I also implemented SP as 2 8-bit variables for some reason.  Not sure why I did that, but it's incorrect regardless, as SP is supposed to be 16-bit.<br /><br />
+
+      Since we need to run games, we need to initialize PC at the correct location.  Once the BIOS is loaded on the Gameboy, the PC will be at 0x0100.  This is where execution of game code begins.  Since we will be skipping the BIOS (for now), we will need to load 0x0100 into PC.<br /><br />
+
+      pc = 0x0100;<br /><br />
+
+      Finally, once we have a way to load the ROM into our memory array, we can get started on implementing opcodes.<br /><br />
+    </p>
+
+</body>
+</html>

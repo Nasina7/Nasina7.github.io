@@ -1,0 +1,158 @@
+<html>
+<head>
+  <link rel="stylesheet" href="../../../index.css">
+  <script src="../../../index.js"></script>
+</head>
+<body>
+    <div id="titleBar">
+      <button id="menuButton" onclick="openMenu()">Menu</button>
+      <button id="menuButton" onclick="goWebLocation()">Old Website</button>
+    </div>
+
+    <div id="tOverlay"></div>
+    <div id="menuBar">
+    </div>
+
+
+    <h1 id="welcomeText">Part 3: Decoding and Implementing Opcodes</h1>
+    <p id="blogText">
+      NOTE: New website currently breaks indentation for this post.  Intend on fixing it soon!<br /><br />
+
+
+      Note:  The way of implementing opcodes that I describe in this section works, but if I were to do this again today (which I probably will since nopGBA is going to have Gameboy support eventually), I would use a different, much more efficient method.<br /><br />
+
+
+
+      So, we create a function that will read and execute each opcode.<br /><br />
+
+      void doOpcode(uint8_t opcode)<br />
+
+      {<br />
+
+        switch(opcode)<br />
+
+        {<br />
+
+          default:<br />
+
+            printf("Unimplemented Opcode 0x%X!\n");<br />
+
+            closeAGBE = true;<br />
+
+          break;<br />
+
+        }<br />
+
+      }<br />
+
+      This will assume that our main function looks like this:<br /><br />
+
+      int main()<br />
+
+      {<br />
+
+        while(closeAGBE == false)<br />
+
+        {<br />
+
+          doOpcode(memory[pc]);<br />
+
+        }<br />
+
+      }<br />
+
+      When we do memory[pc], this loads the current memory location pointed to by PC into our doOpcode function.  The switch statement in doOpcode then compares it with the list of different cases that it has.  If the case does not exist, then it runs the code in the default: case.<br /><br />
+
+      So, lets look at a Gameboy game.  Let's use Tetris as an example, as that is what most Gameboy Emulators will boot first.  The first opcode in Tetris is 0x00.  Looking through the Gameboy CPU Documentation, we see that this opcode is called NOP.  It's function is to have no function, which is why it is called NOP (No Operation).  Implementing this is pretty simple.  Looking at the documentation, all we have to do is increase the current PC by one, so we do just that.<br /><br />
+
+      void doOpcode(uint8_t opcode)<br />
+
+      {<br />
+
+        switch(opcode)<br />
+
+        {<br />
+
+          case 0x00:<br />
+
+            pc++;<br />
+
+          break;<br />
+
+
+
+          default:<br />
+
+            printf("Unimplemented Opcode 0x%X!\n");<br />
+
+            closeAGBE = true;<br />
+
+          break;<br />
+
+        }<br />
+
+      }<br />
+
+      The next opcode is 0xC3.  Looking at our documentation again, we see that this opcode is "JP" or Jump.  It takes the next two bytes in the rom, puts them into a 16-bit value, and sets PC to that value, essentially jumping execution to a new location.  On the gameboy, starting from 0x104 to 0x14F, there is a header that each gameboy rom has.  In this header is data that you probably don't want to execute, so the game jumps over it.  Now that we know how it works, we implement it like follows.<br /><br />
+
+      void doOpcode(uint8_t opcode)<br />
+
+      {<br />
+
+        switch(opcode)<br />
+
+        {<br />
+
+          case 0x00:<br />
+
+            pc++;<br />
+
+          break;<br />
+
+
+
+          case 0xC3:<br />
+
+            pc = memory[pc + 2] << 8 | memory[pc + 1];<br />
+
+          break;<br />
+
+
+
+          default:<br />
+
+            printf("Unimplemented Opcode 0x%X!\n");<br />
+
+            closeAGBE = true;<br />
+
+          break;<br />
+
+        }<br />
+
+      }<br />
+
+      Note however, due to reasons that will be explained later, we will need to route these memory reads and writes through a separate function, so that if the game reads a place that normally is used for something else (I/O Regs, invalid RAM, etc...), we are able to make the correct behavior.  For now, our RAM read function will look like this, but we will need to improve on it later on.<br /><br />
+
+      uint8_t memRead(uint16_t location)<br />
+
+      {<br />
+
+        return memory[location];<br />
+
+      }<br />
+
+      This would cause<br /><br />
+
+      pc = memory[pc + 2] << 8 | memory[pc + 1];<br />
+
+      to actually be<br /><br />
+
+      pc = memRead(pc + 2) << 8 | memRead(pc + 1);<br />
+
+
+
+      We continue doing this until we run into an opcode that changes flags, which will be covered in the next part.<br /><br />
+    </p>
+
+</body>
+</html>

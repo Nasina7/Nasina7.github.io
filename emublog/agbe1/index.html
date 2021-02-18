@@ -1,0 +1,49 @@
+<html>
+<head>
+  <link rel="stylesheet" href="../../index.css">
+  <script src="../../index.js"></script>
+</head>
+<body>
+    <div id="titleBar">
+      <button id="menuButton" onclick="openMenu()">Menu</button>
+      <button id="menuButton" onclick="goWebLocation()">Old Website</button>
+    </div>
+
+    <div id="tOverlay"></div>
+    <div id="menuBar">
+    </div>
+
+
+    <h1 id="welcomeText">Prolouge 2: AGBE Revision 1</h1>
+    <p id="blogText">
+      Before we continue, I find it important to explain some terms that I will be using throughout the rest of the blog.<br /><br />
+
+      Opcode:  Think of opcodes as the software you run.  For something like an 8-Bit system, the opcodes are 8-Bits long.  32-Bit for 32-Bit systems, etc...<br /><br />
+
+      VRAM: Dedicated space in RAM specifically for Video Memory.  Graphics are usually stored here.<br /><br />
+
+      CPU Registers: Specific, extremely fast, parts of the CPU that are able to store data, load data, and preform operations on that data.<br /><br />
+
+      ROMs: ROMs are essentially the digital file version of the cartridges that you play on the actual consoles.  These files almost always contain Opcodes.<br /><br />
+
+      Program Counter: A register in the CPU that keeps track of where execution currently is.<br /><br />
+
+      As I continue throughout the blog, if there are any more things that I feel the need to explain, I will explain them at the beginning of each part.<br /><br />
+
+      Lets quickly also talk about the Gameboys specs.<br /><br />
+
+      The Gameboy has an 8-Bit CPU that is based off of the Z80 cpu used in many other systems at the time.  The gameboy had 64KB of RAM total, but only some was usable by the system.<br /><br />
+
+      So, it was time for me to make a Gameboy Emulator.  I started by collecting some of the resources that you would need when creating an emulator.  Things like a list of all the Opcodes, a RAM layout, etc...<br /><br />
+
+      After a bit of thinking for a name, I decided on AGBE.  AGBE stands for Another GameBoy Emulator.  This is the first of two of my programs that use this naming scheme.<br /><br />
+
+      The first part of creating the emulator was loading the ROM into an array (A series of variables in order), so that I can read and execute opcodes.  For me at the time, this was a lot easier said than done.  It took me a LONG time to figure this out.  Nowadays, it usually takes me less than a minute.  Anyways, I declared the array using Char as the type (This was a horrible idea, and it will be explained why much later on.)  After being stumped on this for about a week, I finally figured it out and successfully got it to load.  The first opcode that I was presented with was 0x00.  0x00 is a NOP or No Operation.  This means that all I need to do when running into this, is increase the Program Counter when I encountered it.  The next thing I encountered was 0xC3.  This opcode was a Jump instruction, which meant that I needed to take the next two bytes of code, load them as a 16-bit value, then make the program counter equal to it.  After implementing opcodes for about a week, I eventually took a break.  This break ended up lasting about a year.  I don't remember why exactly it lasted a year, maybe something came up, I honestly don't know.  After that break, that leads us into the next part.<br /><br />
+
+
+
+      I think that I might still actually have the source code for this one, I'm not certain.  I'll have to check later.<br /><br />
+    </p>
+
+</body>
+</html>
